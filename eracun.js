@@ -133,7 +133,14 @@ var pesmiIzRacuna = function(racunId, callback) {
     Track.TrackId IN (SELECT InvoiceLine.TrackId FROM InvoiceLine, Invoice \
     WHERE InvoiceLine.InvoiceId = Invoice.InvoiceId AND Invoice.InvoiceId = " + racunId + ")",
     function(napaka, vrstice) {
-      console.log(vrstice);
+      if (napaka) {
+        callback(false);
+      } else {
+        for (var i=0; i<vrstice.length; i++) {
+          vrstice[i].stopnja = davcnaStopnja((vrstice[i].opisArtikla.split(' (')[1]).split(')')[0], vrstice[i].zanr);
+        }
+        callback(vrstice);
+      }
     })
 }
 
@@ -148,7 +155,25 @@ var strankaIzRacuna = function(racunId, callback) {
 
 // Izpis računa v HTML predstavitvi na podlagi podatkov iz baze
 streznik.post('/izpisiRacunBaza', function(zahteva, odgovor) {
-  odgovor.end();
+  var form = new formidable.IncomingForm();
+  var racunId;
+  
+  form.parse(zahteva, function(napaka, vrstice, datoteke) {
+    racunId = vrstice.seznamRacunov;
+    pesmiIzRacuna(racunId, function(pesmi) {
+      if (!pesmi) {
+        odgovor.sendStatus(500);
+      } else {
+        odgovor.setHeader('content-type', 'text/xml');
+        odgovor.render('eslog', {
+          vizualiziraj: true,
+          postavkeRacuna: pesmi
+        }); 
+      }
+    });
+  });
+
+  
 })
 
 // Izpis računa v HTML predstavitvi ali izvorni XML obliki
