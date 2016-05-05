@@ -149,7 +149,11 @@ var strankaIzRacuna = function(racunId, callback) {
     pb.all("SELECT Customer.* FROM Customer, Invoice \
             WHERE Customer.CustomerId = Invoice.CustomerId AND Invoice.InvoiceId = " + racunId,
     function(napaka, vrstice) {
-      console.log(vrstice);
+      if (napaka) {
+        callback(false);
+      } else {
+        callback(vrstice)
+      }
     })
 }
 
@@ -161,15 +165,18 @@ streznik.post('/izpisiRacunBaza', function(zahteva, odgovor) {
   form.parse(zahteva, function(napaka, vrstice, datoteke) {
     racunId = vrstice.seznamRacunov;
     pesmiIzRacuna(racunId, function(pesmi) {
-      if (!pesmi) {
-        odgovor.sendStatus(500);
-      } else {
-        odgovor.setHeader('content-type', 'text/xml');
-        odgovor.render('eslog', {
-          vizualiziraj: true,
-          postavkeRacuna: pesmi
-        }); 
-      }
+      strankaIzRacuna(racunId, function(stranka) {
+        if (!pesmi || !stranka) {
+          odgovor.sendStatus(500);
+        } else {
+          odgovor.setHeader('content-type', 'text/xml');
+          odgovor.render('eslog', {
+            vizualiziraj: true,
+            postavkeRacuna: pesmi,
+            narocnik: stranka
+          }); 
+        }
+      });
     });
   });
 
