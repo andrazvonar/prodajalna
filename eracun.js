@@ -251,6 +251,7 @@ streznik.post('/odjava', function(zahteva, odgovor) {
         prijavljeniUporabniki.splice(i, 1);
       }
     })
+    zahteva.session.destroy();
     odgovor.redirect('/prijava') 
 })
 
