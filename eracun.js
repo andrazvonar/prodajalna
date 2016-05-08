@@ -311,11 +311,6 @@ streznik.post('/odjava', function(zahteva, odgovor) {
       delete prijavljeniUporabniki[zahteva.sessionID];
     }
   }
-    prijavljeniUporabniki.forEach(function(ID, i) {
-      if (zahteva.sessionID == ID) {
-        prijavljeniUporabniki.splice(i, 1);
-      }
-    })
     zahteva.session.destroy();
     odgovor.redirect('/prijava') 
 })
